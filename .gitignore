@@ -1,0 +1,9 @@
+*~
+node_modules
+coverage
+build.js
+build.min.js
+*.tgz
+npm-shrinkwrap.json
+
+

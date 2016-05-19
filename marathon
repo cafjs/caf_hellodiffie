@@ -1,0 +1,43 @@
+{
+    "id": "root-hellodiffie",
+    "container": {
+        "type":"DOCKER",
+        "docker": {
+            "image":"registry.cafjs.com:32000/root-hellodiffie",
+            "network":"BRIDGE",
+            "portMappings":[
+                {
+                    "containerPort":3000,
+                    "hostPort":0,
+                    "protocol":"tcp"
+                }
+            ],
+            "privileged":false,
+            "parameters":[
+                {
+                    "key":"env",
+                    "value":"REDIS_PORT_6379_TCP_PORT=6380"
+                },
+                {
+                    "key":"env",
+                    "value":"DOCKER_APP_INTERNAL_PORT=3000"
+                }
+            ],
+            "forcePullImage":true
+        }
+    },
+   "healthChecks": [
+    {
+        "protocol": "COMMAND",
+        "command": { "value": "curl -f -X GET http://$HOST:$PORT0/ping | grep -q Hello" },
+        "gracePeriodSeconds": 300,
+        "intervalSeconds": 60,
+        "timeoutSeconds": 20,
+        "maxConsecutiveFailures": 3
+    }
+    ],
+    "args" : ["--max_old_space_size=96", "./index.js"],
+    "cpus": 0.1,
+    "mem": 128.0,
+    "instances": 1
+}

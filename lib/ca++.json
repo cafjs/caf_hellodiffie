@@ -1,0 +1,58 @@
+{
+    "name" : "ca",
+    "components" : [
+        {
+            "module": "caf_react#plug_ca",
+            "name": "react",
+            "description": "Manages background rendering for this CA.",
+            "env" : {
+                "maxRetries" : "$._.env.maxRetries",
+                "retryDelay" : "$._.env.retryDelay",
+                "coinPlayTime" : "process.env.COIN_PLAY_TIME||900"
+            },
+            "components" : [
+                {
+                    "module": "caf_react#proxy",
+                    "name": "proxy",
+                    "description": "Provides the background rendering API.",
+                    "env" : {
+
+                    }
+                }
+            ]
+        },
+        {
+            "module": "caf_iot#plug_ca",
+            "name": "iot",
+            "description": "Manages an IoT device for this CA.",
+            "env" : {
+                "maxRetries" : "$._.env.maxRetries",
+                "retryDelay" : "$._.env.retryDelay",
+                "marginInMsec": "process.env.MARGIN_IN_MSEC||2000"
+            },
+            "components" : [
+                {
+                    "module": "caf_iot#proxy",
+                    "name": "proxy",
+                    "description": "Provides access to an IoT device.",
+                    "env" : {
+
+                    }
+                }
+            ]
+        },
+        {
+            "name": "handler",
+            "components" : [
+                {
+                    "name": "props",
+                    "env" : {
+                        "resistorPullUp": "process.env.RESISTOR_PULL_UP||true",
+                        "initialStateHigh": "process.env.INITIAL_STATE_HIGH||false",
+                        "margin" : "process.env.MARGIN||1"
+                    }
+                }
+            ]
+        }
+    ]
+}

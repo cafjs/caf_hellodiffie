@@ -1,0 +1,36 @@
+{
+  "name": "caf_hellodiffie",
+  "description": "Cloud Assistants example with DH ephemeral public keys",
+  "version": "0.2.1",
+  "author": "Antonio Lain <antlai@cafjs.com>",
+  "dependencies": {
+      "caf_react" :"^0.2.0",
+      "caf_core": "^0.2.0",
+      "caf_components" : "^0.2.0",
+      "caf_transport" : "^0.2.0",
+      "caf_cli": "^0.2.0",
+      "caf_iot": "^0.2.0",
+      "react" : "^0.14.0",
+      "react-dom" : "^0.14.0",
+      "react-bootstrap" : "^0.28.1",
+      "flux": "^2.0.2",
+      "keymirror": "^0.1.0",
+      "eventemitter2" : "^0.4.14"
+   },
+    "devDependencies": {
+        "nodeunit" : ">=0.9",
+        "browserify" : "^13.0.0",
+        "uglify-js" : "^2.4.0"
+    },
+    "scripts": {
+       "start" : "node ./index.js",
+        "test": "node ./node_modules/.bin/nodeunit",
+        "build-js" : "browserify  -d public/js/main.js -o public/js/build.js",
+        "build-min-js" : "export NODE_ENV=production; browserify public/js/main.js | uglifyjs > public/js/build.min.js",
+        "build-iot" : "cd iot;  if test -f all.tgz; then tar xvf all.tgz; fi; rm -f *.tgz; rm -f npm-shrinkwrap.json; npm install --production; npm shrinkwrap;  npm pack; cp *.tgz ../public/iot.tgz; rm -fr node_modules/*;",
+        "build-app" : "npm run build-js && npm run build-min-js",
+        "build": "npm run build-app && npm run build-iot"
+    },
+   "main": "index",
+  "engines": { "node": ">= 0.10.29" }
+}

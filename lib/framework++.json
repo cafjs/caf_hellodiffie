@@ -1,0 +1,40 @@
+{
+    "name": "top",
+    "env" : {
+        "appPublisher" :"process.env.APP_PUBLISHER||root",
+        "appLocalName" : "process.env.APP_LOCAL_NAME||helloiot",
+        "appSuffix" : "process.env.APP_SUFFIX||cafjs.com"
+     },
+    "components": [
+        {
+            "name": "log",
+            "env" : {
+                "logLevel" : "DEBUG"
+            }
+        },
+        {
+            "name": "cp2"
+        },
+        {
+            "name" : "react",
+            "module": "caf_react#plug",
+            "description": "React.js background rendering",
+            "env": {
+                "appFileName" : "../public/index.html",
+                "separator" : "<section id=\"content\">",
+                "cacheService" : "cp",
+                "expiresInSec" : 60
+            }
+        },
+        {
+            "name" : "iot",
+            "module": "caf_iot#plug",
+            "description": "Access to an IoT device",
+            "env": {
+                "iotMethodsFileName" : "../iot/lib/iot_methods.js",
+                "iotDeviceManagerAppURL" :"process.env.IOT_DEVICE_MANAGER_APP_URL||https://root-gadget.cafjs.com",
+                "appDir" : null
+            }
+        }
+    ]
+}

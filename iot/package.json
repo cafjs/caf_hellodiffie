@@ -1,0 +1,16 @@
+{
+  "name": "caf_iot_helloiot",
+  "description": "Cloud Assistants IoT example (Device)",
+  "version": "0.2.4",
+  "author": "Antonio Lain <antlai@cafjs.com>",
+  "dependencies": {
+      "caf_iot" : "^0.2.0",
+      "caf_rpi_gpio" : "^0.2.0"
+   },
+    "scripts": {
+       "start" : "node ./index.js",
+        "build": "echo done"
+    },
+   "main": "index",
+  "engines": { "node": ">= 0.10.29" }
+}

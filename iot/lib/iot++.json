@@ -1,0 +1,47 @@
+{
+    "name": "top",
+    "env" : {
+        "myId" : "process.env.MY_ID||foo-ca1",
+        "appProtocol" : "process.env.APP_PROTOCOL||https",
+        "appPublisher" : "process.env.APP_PUBLISHER||root",
+        "appLocalName" : "process.env.APP_LOCAL_NAME||helloiot",
+        "appSuffix" : "process.env.APP_SUFFIX||cafjs.com",
+        "interval": "process.env.INTERVAL||1000"
+    },
+    "components": [
+        {
+            "name": "iot",
+            "components": [
+                {
+                    "name": "log",
+                    "env" : {
+                        "logLevel" : "DEBUG"
+                    }
+                },
+                {
+                    "module": "caf_rpi_gpio#plug_iot",
+                    "name": "gpio",
+                    "description": "Access to GPIO pins for this device.",
+                    "env" : {
+                        "maxRetries" : "$._.env.maxRetries",
+                        "retryDelay" : "$._.env.retryDelay",
+                        "gpiomem" : "process.env.GPIO_MEM||true",
+                        "mapping" : "process.env.MAPPING||physical",
+                        "allowMock" : "process.env.ALLOW_MOCK||true",
+                        "mockRootDir" : "process.env.MOCK_ROOT_DIR||/tmp/gpio"
+                    },
+                    "components" : [
+                        {
+                            "module": "caf_rpi_gpio#proxy_iot",
+                            "name": "proxy",
+                            "description": "Proxy to access GPIO pins",
+                            "env" : {
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
+
