@@ -6,7 +6,7 @@
 # TO_RUN:         docker run -p <app_port>:3000 -v /<appName>/config:/config localhost.localdomain:5000/<appName>:<etag>
 #
 
-FROM registry.cafjs.com:32000/root-rpi2armhf
+FROM registry.cafjs.com:32000/root-rpi2bluearmhf
 
 ENTRYPOINT ["node"]
 

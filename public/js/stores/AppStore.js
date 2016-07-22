@@ -36,22 +36,23 @@ var newAppStore = function() {
     };
 
     var mixinAutho = function(autho) {
-        autho = autho || {};
-        var computeAutho = function() {
-            var res =  {delegate: {}, authorized: {}};
-            Object.keys(autho).forEach(function(x) {
-                if (x ===  LINK_KEY) {
-                    var links = autho[x] || [];
-                    links.forEach(function(y) {
-                        res.delegate[y] = true;
-                    });
-                } else {
-                    res.authorized[x] = true;
-                }
-            });
-            return res;
-        };
-        state.autho = computeAutho();
+        if (autho) {
+            var computeAutho = function() {
+                var res =  {delegate: {}, authorized: {}};
+                Object.keys(autho).forEach(function(x) {
+                    if (x ===  LINK_KEY) {
+                        var links = autho[x] || [];
+                        links.forEach(function(y) {
+                            res.delegate[y] = true;
+                        });
+                    } else {
+                        res.authorized[x] = true;
+                    }
+                });
+                return res;
+            };
+            state.autho = computeAutho();
+        }
     };
 
     var f = function(action) {

@@ -2,10 +2,13 @@ var React = require('react');
 var rB = require('react-bootstrap');
 var cE = React.createElement;
 var AppActions = require('../actions/AppActions');
+var json_rpc = require('caf_transport').json_rpc;
 
+
+var DELEGATE_SUFFIX = '-manager-authorized';
 
 var isDelegate = function(principal, autho) {
-    return autho.delegate[principal];
+    return autho.delegate[principal + DELEGATE_SUFFIX];
 };
 
 var isAuthorized = function(principal, autho) {
@@ -101,10 +104,11 @@ var Authorization = {
                                       cE('td', {key:903*index+1}, x),
                                       cE('td', {key:903*index+2}, 'ALLOW')
                                   ];
-                                  return cE('tr', {key:703*index}, cols);
+                                  return cE('tr', {key:903*index}, cols);
                               }).concat(
                                   delegates.map(function(x, i) {
                                       var index = i+1;
+                                      x = json_rpc.splitName(x)[0];
                                       var cols = [
                                           cE('td', {key:703*index+1}, x),
                                           cE('td', {key:703*index+2},

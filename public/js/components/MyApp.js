@@ -6,6 +6,7 @@ var AppActions = require('../actions/AppActions');
 var Authorization = require('./Authorization');
 var Send = require('./Send');
 var Receive = require('./Receive');
+var DeviceInfo = require('./DeviceInfo');
 var AppStatus = require('./AppStatus');
 var DisplayError = require('./DisplayError');
 
@@ -23,8 +24,8 @@ var MyApp = {
         this.setState(AppStore.getState());
     },
     render: function() {
-        var pubKey = (this.state.pubKey ?  this.state.pubKey.slice(0, 8) +
-                      '...' : "");
+        var pubKey = (this.state.clientInfo ?
+                      this.state.clientInfo.key.slice(0, 8) + '...' : "");
         return cE("div", {className: "container-fluid"},
                   cE(DisplayError, {
                       error: this.state.error
@@ -50,25 +51,29 @@ var MyApp = {
                                    )
                                 )
                   },
-                     cE(rB.Panel, {header: "Authorization for " + pubKey},
+                     cE(rB.Panel, {header: "Authorization for public key " +
+                                   pubKey},
                         cE(Authorization, {
                             principalId: this.state.principalId,
                             isManager: this.state.isManager,
                             autho: this.state.autho
                         })),
-                     cE(rB.Panel, {header: "Send Message"},
-                        cE(Send, {
-                            msg : this.state.msg,
-                            msgEnc : this.state.msgEnc,
-                            toId : this.state.toId
-                        })),
-                     cE(rB.Panel, {header: "Last Received Message"},
-                        cE(Receive, {
-                            msgRecv: this.state.msgRecv,
-                            msgEncRecv: this.state.msgEncRecv,
-                            msgFromRecv: this.state.msgFromRecv
-                        }))
-                    )
+                     cE(Send, {
+                         msg : this.state.msg,
+                         isManager: this.state.isManager,
+                         msgEnc : this.state.msgEnc,
+                         toId : this.state.toId
+                     }),
+                     cE(Receive, {
+                         msgRecv: this.state.msgRecv,
+                         isManager: this.state.isManager,
+                         msgEncRecv: this.state.msgEncRecv,
+                         msgFromRecv: this.state.msgFromRecv
+                     }),
+                     cE(DeviceInfo, {
+                         isManager: this.state.isManager,
+                         deviceInfo: this.state.deviceInfo || {}
+                     }))
                  );
     }
 };

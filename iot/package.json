@@ -1,11 +1,11 @@
 {
-  "name": "caf_iot_helloiot",
-  "description": "Cloud Assistants IoT example (Device)",
-  "version": "0.2.4",
+  "name": "caf_iot_hellodiffie",
+  "description": "Cloud Assistants Diffie example (Device)",
+  "version": "0.2.1",
   "author": "Antonio Lain <antlai@cafjs.com>",
   "dependencies": {
       "caf_iot" : "^0.2.0",
-      "caf_rpi_gpio" : "^0.2.0"
+      "nexpect" : "^0.5.0"
    },
     "scripts": {
        "start" : "node ./index.js",

@@ -4,9 +4,16 @@
         "myId" : "process.env.MY_ID||foo-ca1",
         "appProtocol" : "process.env.APP_PROTOCOL||https",
         "appPublisher" : "process.env.APP_PUBLISHER||root",
-        "appLocalName" : "process.env.APP_LOCAL_NAME||helloiot",
+        "appLocalName" : "process.env.APP_LOCAL_NAME||hellodiffie",
         "appSuffix" : "process.env.APP_SUFFIX||cafjs.com",
-        "interval": "process.env.INTERVAL||1000"
+        "interval": "process.env.INTERVAL||1000",
+        "bluetoothDevice" : "process.env.BLUETOOTH_DEVICE||0",
+        "bluetoothTimeout" : "process.env.BLUETOOTH_TIMEOUT||30000",
+        "btmgmt" : "process.env.BTMGMT||/usr/bin/btmgmt",
+        "scanInterval" : "process.env.SCAN_INTERVAL||20000",
+        "connInterval" : "process.env.CONN_INTERVAL||5000",
+        "pairingRetries" : "process.env.PAIRING_RETRIES||50",
+        "gcPairingsInterval" : "process.env.GC_PAIRINGS_INTERVAL||30000"
     },
     "components": [
         {
@@ -19,23 +26,19 @@
                     }
                 },
                 {
-                    "module": "caf_rpi_gpio#plug_iot",
-                    "name": "gpio",
-                    "description": "Access to GPIO pins for this device.",
-                    "env" : {
-                        "maxRetries" : "$._.env.maxRetries",
-                        "retryDelay" : "$._.env.retryDelay",
-                        "gpiomem" : "process.env.GPIO_MEM||true",
-                        "mapping" : "process.env.MAPPING||physical",
-                        "allowMock" : "process.env.ALLOW_MOCK||true",
-                        "mockRootDir" : "process.env.MOCK_ROOT_DIR||/tmp/gpio"
-                    },
+                    "name": "handler",
                     "components" : [
                         {
-                            "module": "caf_rpi_gpio#proxy_iot",
-                            "name": "proxy",
-                            "description": "Proxy to access GPIO pins",
+                            "name": "props",
+                            "description": "Exposes read-only properties to app methods",
                             "env" : {
+                                "bluetoothDevice" : "$._.env.bluetoothDevice",
+                                "btmgmt" : "$._.env.btmgmt",
+                                "bluetoothTimeout" : "$._.env.bluetoothTimeout",
+                                "scanInterval" : "$._.env.scanInterval",
+                                "connInterval" : "$._.env.connInterval",
+                                "pairingRetries" : "$._.env.pairingRetries",
+                                "gcPairingsInterval" : "$._.env.gcPairingsInterval"
                             }
                         }
                     ]
@@ -44,4 +47,3 @@
         }
     ]
 }
-

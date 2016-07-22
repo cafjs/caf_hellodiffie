@@ -48,50 +48,54 @@ var Send = {
     },
 
     render : function() {
-        return cE(rB.Grid, null,
-                  cE(rB.Row, null,
-                     cE(rB.Col, {sm:6, xs:12},
-                        cE(rB.Input, {
-                            type: 'text',
-                            ref: 'toId',
-                            value: this.props.toId,
-                            onChange: this.handleToId,
-                            placeholder: 'To'
-                        })),
-                      cE(rB.Col, {sm:6, xs:12},
-                         cE(rB.ButtonGroup, null,
-                            cE(rB.Button, {onClick: this.doEncrypt,
-                                           key:319879},'Encrypt'),
-                            cE(rB.Button, {onClick: this.doSend, key:39879},
-                               'Send'),
-                            cE(rB.Button, {onClick: this.doCancel,
-                                           bsStyle: 'danger', key:39079},
-                               'Cancel')
-                           )
-                        )
-                    ),
-                  cE(rB.Row, null,
-                     cE(rB.Col, {sm:6, xs:12},
-                        cE(rB.Input, {
-                            type: 'textarea',
-                            ref: 'msg',
-                            value: this.props.msg,
-                            onChange: this.handleMsg,
-                            onKeyDown: this.msgKeyDown,
-                            placeholder: 'Message to send'
-                        })
-                       ),
-                     cE(rB.Col, {sm:6, xs:12},
-                        cE(rB.Input, {
-                            type: 'textarea',
-                            ref: 'msgEnc',
-                            readOnly: true,
-                            value: this.props.msgEnc,
-                            placeholder: 'Encrypted message'
-                        })
-                       )
-                    )
-                 );
+        return  (this.props.isManager ?
+                 cE(rB.Panel, {header: "Send Message"},
+                    cE(rB.Grid, null,
+                       cE(rB.Row, null,
+                          cE(rB.Col, {sm:6, xs:12},
+                             cE(rB.Input, {
+                                 type: 'text',
+                                 ref: 'toId',
+                                 value: this.props.toId,
+                                 onChange: this.handleToId,
+                                 placeholder: 'To'
+                             })),
+                          cE(rB.Col, {sm:6, xs:12},
+                             cE(rB.ButtonGroup, null,
+                                cE(rB.Button, {onClick: this.doEncrypt,
+                                               key:319879},'Encrypt'),
+                                cE(rB.Button, {onClick: this.doSend, key:39879},
+                                   'Send'),
+                                cE(rB.Button, {onClick: this.doCancel,
+                                               bsStyle: 'danger', key:39079},
+                                   'Cancel')
+                               )
+                            )
+                         ),
+                       cE(rB.Row, null,
+                          cE(rB.Col, {sm:6, xs:12},
+                             cE(rB.Input, {
+                                 type: 'textarea',
+                                 ref: 'msg',
+                                 value: this.props.msg,
+                                 onChange: this.handleMsg,
+                                 onKeyDown: this.msgKeyDown,
+                                 placeholder: 'Message to send'
+                             })
+                            ),
+                          cE(rB.Col, {sm:6, xs:12},
+                             cE(rB.Input, {
+                                 type: 'textarea',
+                                 ref: 'msgEnc',
+                                 readOnly: true,
+                                 value: this.props.msgEnc,
+                                 placeholder: 'Encrypted message'
+                             })
+                            )
+                         )
+                      )
+                   ) : cE('div', null));
+
     }
 };
 

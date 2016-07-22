@@ -10,6 +10,8 @@ var async = caf_comp.async;
 var MAX_RETRIES = 10;
 var MAX_RETRY_DELAY=1000;
 
+var OP_NEW_MESSAGE = 'newMessage';
+
 var updateF = function(state) {
     var d = {
         actionType: AppConstants.APP_UPDATE,
@@ -77,11 +79,11 @@ var AppActions = {
                             cb1(err, res);
                         }
                     };
-                    AppSession.getPubKey(id, cb2);
+                    AppSession.getClientInfo(id, cb2);
                 },
                 function(otherPubKey, cb1) {
                     var cryp = AppSession.getCrypto();
-                    cryp.setOtherPublicKey(otherPubKey);
+                    cryp.setOtherPublicKey(otherPubKey.key);
                     cb1(null, {msgEnc : cryp.encryptAndMAC(msg)});
                 }
             ], cb);
@@ -91,7 +93,7 @@ var AppActions = {
                                    if (err) {
                                        errorF(err);
                                    } else {
-                                       updateF(data);
+                                       updateF({state: data});
                                    }
                                });
     },
@@ -106,9 +108,9 @@ var AppActions = {
     }
 };
 
-['authorize', 'unauthorize', 'link', 'unlink', 'newMsg', 'getPubKey',
- 'getState'].forEach(function(x) {
-     AppActions[x] = function() {
+['authorize', 'unauthorize', 'link', 'unlink', 'newMsg', 'getState']
+    .forEach(function(x) {
+        AppActions[x] = function() {
             var args = Array.prototype.slice.call(arguments);
             args.push(function(err, data) {
                 if (err) {
@@ -125,6 +127,7 @@ var AppActions = {
 AppSession.onmessage = function(data) {
     console.log('message:' + JSON.stringify(data));
 
+    data = json_rpc.getMethodArgs(data)[0];
     var decryptImpl = function(cb) {
         async.waterfall([
             function(cb1) {
@@ -137,25 +140,32 @@ AppSession.onmessage = function(data) {
                         cb1(err, res);
                     }
                 };
-                AppSession.getPubKey(data.from, cb2);
+                AppSession.getClientInfo(data.from, cb2);
             },
             function(otherPubKey, cb1) {
                 var cryp = AppSession.getCrypto();
-                cryp.setOtherPublicKey(otherPubKey);
+                cryp.setOtherPublicKey(otherPubKey.key);
                 cb1(null, cryp.authAndDecrypt(data.msg));
             }
         ], cb);
     };
 
-    myUtils.retryWithDelay(decryptImpl, MAX_RETRIES, MAX_RETRY_DELAY,
-                           function(err, msg) {
-                               if (err) {
-                                   errorF(err);
-                               } else {
-                                   updateF({msgRecv: msg, msgEncRecv: data.msg,
-                                            msgFromRecv: data.from});
-                               }
-                           });
+    if (data.op === OP_NEW_MESSAGE) {
+        myUtils.retryWithDelay(decryptImpl, MAX_RETRIES, MAX_RETRY_DELAY,
+                               function(err, msg) {
+                                   if (err) {
+                                       errorF(err);
+                                   } else {
+                                       updateF({state : {
+                                           msgRecv: msg,
+                                           msgEncRecv: data.msg,
+                                           msgFromRecv: data.from
+                                       }});
+                                   }
+                               });
+    } else {
+        AppActions.getState();
+    }
 };
 
 AppSession.onclose = function(err) {
