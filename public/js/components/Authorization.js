@@ -63,7 +63,7 @@ var Authorization = {
                 .filter(function(x) { return (x.indexOf('__') !== 0);})
                 .sort();
 
-        return cE(rB.Grid, null,
+        return cE(rB.Grid, {fluid: true},
                   cE(rB.Row, null,
                      cE(rB.Col, {sm:6, xs:12},
                         cE(rB.Input, {

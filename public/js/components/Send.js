@@ -50,7 +50,7 @@ var Send = {
     render : function() {
         return  (this.props.isManager ?
                  cE(rB.Panel, {header: "Send Message"},
-                    cE(rB.Grid, null,
+                    cE(rB.Grid, {fluid: true},
                        cE(rB.Row, null,
                           cE(rB.Col, {sm:6, xs:12},
                              cE(rB.Input, {

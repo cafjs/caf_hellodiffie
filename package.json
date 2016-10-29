@@ -1,7 +1,7 @@
 {
   "name": "caf_hellodiffie",
   "description": "Cloud Assistants example with DH ephemeral public keys",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "author": "Antonio Lain <antlai@cafjs.com>",
   "dependencies": {
       "caf_react" :"^0.2.0",
