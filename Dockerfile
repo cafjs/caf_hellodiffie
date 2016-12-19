@@ -15,7 +15,7 @@ WORKDIR /usr/src/app
 
 COPY . /usr/src/app
 
-RUN  touch /usr/src/app/http_proxy_build; . /usr/src/app/http_proxy_build;  rm -fr node_modules/*; rm -f npm-shrinkwrap.json; if test -f all.tgz; then tar zxvf all.tgz; fi; npm install  . ; npm run build ; rm -fr node_modules/browserify  node_modules/uglify-js; rm -f all.tgz
+RUN  touch /usr/src/app/http_proxy_build; . /usr/src/app/http_proxy_build;  rm -fr node_modules/*; rm -f npm-shrinkwrap.json; if test -f all.tgz; then tar zxvf all.tgz; fi; npm install  . ; npm run build ; rm -fr node_modules/nodeunit node_modules/browserify  node_modules/uglify-js; rm -f all.tgz
 
 ENTRYPOINT ["node"]
 
