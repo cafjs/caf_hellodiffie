@@ -31,7 +31,8 @@ var RAW_ADDR = /[A-F\d][A-F\d]:[A-F\d][A-F\d]:[A-F\d][A-F\d]:[A-F\d][A-F\d]:[A-F
 
 var REG_ADDR = /dev_found:\s[A-F\d]?[A-F\d]?:[A-F\d]?[A-F\d]?:[A-F\d]?[A-F\d]?:[A-F\d]?[A-F\d]?:[A-F\d]?[A-F\d]?:[A-F\d]?[A-F\d]?/g;
 
-var REG_NAME= /name\s[\w-]+###/g; //end of the line matched
+var REG_NAME= /name\s[^#]+###/g; //end of the line matched
+var SUCCEED= /succeeded/;
 var LINE_SEP='###';
 
 var PREFIX_NAME='name ';
@@ -78,6 +79,10 @@ var filterFinder = function(prefix, out) {
     }));
 
     var names = out.match(REG_NAME) || [];
+    names = names.filter(function(x) {
+        // hack to parse the output
+        return (x.match(SUCCEED) === null);
+    });
     names = removeDuplicates(names.map(function(x) {
         return x.slice(PREFIX_NAME.length, -LINE_SEP.length);
     }));
