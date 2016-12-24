@@ -11,9 +11,9 @@
         "bluetoothTimeout" : "process.env.BLUETOOTH_TIMEOUT||30000",
         "btmgmt" : "process.env.BTMGMT||/usr/bin/btmgmt",
         "scanInterval" : "process.env.SCAN_INTERVAL||20000",
-        "connInterval" : "process.env.CONN_INTERVAL||5000",
+        "connInterval" : "process.env.CONN_INTERVAL||10000",
         "pairingRetries" : "process.env.PAIRING_RETRIES||50",
-        "gcPairingsInterval" : "process.env.GC_PAIRINGS_INTERVAL||30000"
+        "gcPairingsInterval" : "process.env.GC_PAIRINGS_INTERVAL||300000"
     },
     "components": [
         {
