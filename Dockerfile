@@ -2,20 +2,24 @@
 # DOCKER-VERSION  1.7.0
 # AUTHOR:         Antonio Lain <antlai@cafjs.com>
 # DESCRIPTION:    Cloud Assistants application hellodiffie
-# TO_BUILD:       docker build --rm -t registry.cafjs.com:32000/root-hellodiffie .
-# TO_RUN:         docker run -p <app_port>:3000 -e DOCKER_APP_INTERNAL_PORT=3000 -e PORT0=<app_port> -e HOST=<host_ip> -e REDIS_PORT_6379_TCP_PORT=<redis_port>   registry.cafjs.com:32000/root-hellodiffie
+# TO_BUILD:        cafjs mkImage . registry.cafjs.com:32000/root-hellodiffie
+# TO_RUN:         cafjs run --appImage registry.cafjs.com:32000/root-hellodiffie hellodiffie
 
-FROM node:4.3
+FROM node:8
 
 EXPOSE 3000
 
-RUN mkdir -p /usr/src/app
+RUN mkdir -p /usr/src
+
+ENV PATH="/usr/src/node_modules/.bin:${PATH}"
+
+RUN apt-get update && apt-get install -y rsync
+
+COPY . /usr/src
+
+RUN  cd /usr/src/app && yarn install  --ignore-optional && cafjs build &&  yarn install --production --ignore-optional && yarn cache clean
 
 WORKDIR /usr/src/app
-
-COPY . /usr/src/app
-
-RUN  touch /usr/src/app/http_proxy_build; . /usr/src/app/http_proxy_build;  rm -fr node_modules/*; rm -f npm-shrinkwrap.json; if test -f all.tgz; then tar zxvf all.tgz; fi; npm install  . ; npm run build ; rm -fr node_modules/nodeunit node_modules/browserify  node_modules/uglify-js; rm -f all.tgz
 
 ENTRYPOINT ["node"]
 

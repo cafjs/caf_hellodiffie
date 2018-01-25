@@ -1,2 +1,0 @@
-export http_proxy=http://web-proxy-new.hpl.hp.com:8088
-export https_proxy=http://web-proxy-new.hpl.hp.com:8088

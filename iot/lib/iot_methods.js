@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-"use strict";
+'use strict';
 var caf_iot = require('caf_iot');
 var caf_comp = caf_iot.caf_components;
 var myUtils = caf_comp.myUtils;
@@ -34,7 +34,7 @@ var pubToStr = function(pubKeys) {
 };
 
 exports.methods = {
-    '__iot_setup__' : function(cb) {
+    '__iot_setup__': function(cb) {
         var self = this;
         this.$.log && this.$.log.debug('Setup: device# ' +
                                        this.$.props.bluetoothDevice);
@@ -80,7 +80,7 @@ exports.methods = {
         });
     },
 
-    '__iot_loop__' : function(cb) {
+    '__iot_loop__': function(cb) {
         var self = this;
         this.$.log && this.$.log.debug('Calling loop');
 
@@ -108,7 +108,7 @@ exports.methods = {
         // Array with names of discovered devices with missing pub keys
         this.toCloud.set('pendingPrincipals', Object.keys(this.state.scanned));
 
-        this.toCloud.set('deviceInfo',  myUtils.deepClone({
+        this.toCloud.set('deviceInfo', myUtils.deepClone({
             // Binding being negotiated {name: string, info : {key: string,
             //                                                address: string}};
             pendingBinding: this.state.pendingBinding,
@@ -138,7 +138,7 @@ exports.methods = {
                 this.state.pendingBinding = null;
             }
             cb(null);
-        } else  {
+        } else {
             this.state.pendingBinding = nextTarget();
             if (this.state.pendingBinding) {
                 async.waterfall([
@@ -163,7 +163,7 @@ exports.methods = {
         }
     },
 
-    'pairActive' : function(name, encRes, cb) {
+    'pairActive': function(name, encRes, cb) {
         this.$.log && this.$.log.debug('Pair active, name:' + name +
                                        ' enc: ' + encRes);
         var self = this;
@@ -186,7 +186,7 @@ exports.methods = {
                             error.new = remoteOOBData.nonce;
                             cb1(error);
                         }
-                    } catch(error) {
+                    } catch (error) {
                         cb1(error);
                     }
                 },
@@ -219,9 +219,9 @@ exports.methods = {
     },
 
     // clientInfo type is  {key: string, address: string}
-    'pairPassive' : function(name, clientInfo, encData, cb) {
+    'pairPassive': function(name, clientInfo, encData, cb) {
         this.$.log && this.$.log.debug('Pair passive, name:' + name +
-                                       ' key:' + clientInfo.key.slice(0,5) +
+                                       ' key:' + clientInfo.key.slice(0, 5) +
                                        ' enc: ' + encData);
         var self = this;
         if (this.state.pendingBinding) {
@@ -243,7 +243,7 @@ exports.methods = {
                     if (err) {
                         cb1(err);
                     } else {
-                        localOOBData  = data;
+                        localOOBData = data;
                         cb1(null);
                     }
                 });
@@ -254,7 +254,7 @@ exports.methods = {
                     remoteOOBData = JSON.parse(msg);
                     localOOBData.nonce = remoteOOBData.nonce;
                     self.state.blue.remoteOOB(remoteOOBData, cb1);
-                } catch(error) {
+                } catch (error) {
                     cb1(error);
                 }
             },
@@ -263,7 +263,7 @@ exports.methods = {
                 self.state.blue.unpair(remoteOOBData.address, cb1);
             },
             function(cb1) {
-                  self.$.log && self.$.log.debug('Pair passive: ack');
+                self.$.log && self.$.log.debug('Pair passive: ack');
                 var enc = cry.encryptAndMAC(JSON.stringify(localOOBData));
                 self.$.cloud.cli.ackPairing(name, enc, cb1);
             }
@@ -280,7 +280,7 @@ exports.methods = {
         });
     },
 
-    'gcPairings' : function(cb) {
+    'gcPairings': function(cb) {
         var self = this;
         Object.keys(this.state.bindings).forEach(function(x) {
             var addr = self.state.scanned[x];
@@ -291,7 +291,7 @@ exports.methods = {
         cb(null);
     },
 
-    'connections' : function(cb) {
+    'connections': function(cb) {
         var self = this;
         var now = (new Date()).getTime();
         this.state.blue.connections(function(err, conn) {
@@ -314,7 +314,7 @@ exports.methods = {
         });
     },
 
-    'scan' : function(cb) {
+    'scan': function(cb) {
         var self = this;
         var now = (new Date()).getTime();
         this.$.log && this.$.log.debug(now + ' Start scanning, prefix=' +
