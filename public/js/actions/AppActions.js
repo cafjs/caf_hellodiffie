@@ -110,16 +110,15 @@ var AppActions = {
 
 ['authorize', 'unauthorize', 'link', 'unlink', 'newMsg', 'getState']
     .forEach(function(x) {
-        AppActions[x] = function() {
+        AppActions[x] = async function() {
             var args = Array.prototype.slice.call(arguments);
-            args.push(function(err, data) {
-                if (err) {
-                    errorF(err);
-                } else {
-                    updateF(data);
-                }
-            });
-            AppSession[x].apply(AppSession, args);
+            try {
+                var data = await AppSession[x].apply(AppSession, args)
+                        .getPromise();
+                updateF(data);
+            } catch (err) {
+                errorF(err);
+            }
         };
     });
 

@@ -18,7 +18,6 @@ limitations under the License.
 var caf_iot = require('caf_iot');
 var caf_comp = caf_iot.caf_components;
 var myUtils = caf_comp.myUtils;
-var async = caf_comp.async;
 var json_rpc = caf_iot.caf_transport.json_rpc;
 var blue = require('./blue');
 
@@ -34,8 +33,7 @@ var pubToStr = function(pubKeys) {
 };
 
 exports.methods = {
-    '__iot_setup__': function(cb) {
-        var self = this;
+    async __iot_setup__() {
         this.$.log && this.$.log.debug('Setup: device# ' +
                                        this.$.props.bluetoothDevice);
         this.state.blue = blue.newInstance(this.$.props.btmgmt,
@@ -54,33 +52,28 @@ exports.methods = {
 
         this.state.blue.setup(this.$.log);
 
-        async.series([
-            function(cb1) {
-                self.state.blue.init(name, cb1);
-            },
-            function(cb1) {
-                var pubKey = self.$.cloud.cli.getCrypto().getPublicKey();
-                var address = self.state.blue.getAddress();
-                self.$.cloud.cli.newClientInfo({key: pubKey, address: address},
-                                               cb1);
-            }
-        ], function(err) {
-            if (err) {
-                cb(err);
-            } else {
-                self.$.cron.addCron('scanCron', 'scan', [],
-                                    self.$.props.scanInterval);
-                self.$.cron.addCron('connCron', 'connections', [],
-                                    self.$.props.connInterval);
-                self.$.cron.addCron('gcPairingsCron', 'gcPairings', [],
-                                    self.$.props.gcPairingsInterval);
+        try {
+            await this.state.blue.init(name);
+            var pubKey = this.$.cloud.cli.getCrypto().getPublicKey();
+            var address = this.state.blue.getAddress();
 
-                cb(null);
-            }
-        });
+            await this.$.cloud.cli.newClientInfo({
+                key: pubKey, address: address
+            }).getPromise();
+
+            this.$.cron.addCron('scanCron', 'scan', [],
+                                this.$.props.scanInterval);
+            this.$.cron.addCron('connCron', 'connections', [],
+                                this.$.props.connInterval);
+            this.$.cron.addCron('gcPairingsCron', 'gcPairings', [],
+                                this.$.props.gcPairingsInterval);
+            return [];
+        } catch (err) {
+            return [err];
+        }
     },
 
-    '__iot_loop__': function(cb) {
+    async __iot_loop__() {
         var self = this;
         this.$.log && this.$.log.debug('Calling loop');
 
@@ -137,93 +130,78 @@ exports.methods = {
             if (this.state.pendingBinding.nTries === 0) {
                 this.state.pendingBinding = null;
             }
-            cb(null);
+            return [];
         } else {
             this.state.pendingBinding = nextTarget();
             if (this.state.pendingBinding) {
-                async.waterfall([
-                    function(cb1) {
-                        self.state.blue.readOOB(cb1);
-                    },
-                    function(localOOB, cb1) {
-                        self.state.nonce = myUtils.uniqueId();
-                        localOOB.nonce = self.state.nonce;
-                        var cry = self.$.cloud.cli.getCrypto();
-                        cry.setOtherPublicKey(self.state.pendingBinding
-                                              .info.key);
-                        var enc = cry.encryptAndMAC(JSON.stringify(localOOB));
-                        self.$.cloud.cli.requestPairing(self.state
-                                                        .pendingBinding
-                                                        .name, enc, cb1);
-                    }
-                ], cb);
+                try {
+                    var localOOB = await this.state.blue.readOOB();
+                    this.state.nonce = myUtils.uniqueId();
+                    localOOB.nonce = this.state.nonce;
+                    var cry = this.$.cloud.cli.getCrypto();
+                    cry.setOtherPublicKey(this.state.pendingBinding.info.key);
+                    var enc = cry.encryptAndMAC(JSON.stringify(localOOB));
+                    var data = await this.$.cloud.cli
+                            .requestPairing(this.state.pendingBinding.name,
+                                            enc)
+                            .getPromise();
+                    return [null, data];
+                } catch (err) {
+                    return [err];
+                }
             } else {
-                cb(null);
+                return [];
             }
         }
     },
 
-    'pairActive': function(name, encRes, cb) {
+    async pairActive(name, encRes) {
         this.$.log && this.$.log.debug('Pair active, name:' + name +
                                        ' enc: ' + encRes);
-        var self = this;
         if (this.state.pendingBinding &&
             (this.state.pendingBinding.name === name)) {
             var remoteOOBData = null;
-            async.series([
-                function(cb1) {
-                    try {
-                        var cry = self.$.cloud.cli.getCrypto();
-                        cry.setOtherPublicKey(self.state.pendingBinding
-                                              .info.key);
-                        var msg = cry.authAndDecrypt(encRes);
-                        remoteOOBData = JSON.parse(msg);
-                        if (remoteOOBData.nonce === self.state.nonce) {
-                            self.state.blue.remoteOOB(remoteOOBData, cb1);
-                        } else {
-                            var error = new Error('Nonce does not match');
-                            error.old = self.state.nonce;
-                            error.new = remoteOOBData.nonce;
-                            cb1(error);
-                        }
-                    } catch (error) {
-                        cb1(error);
-                    }
-                },
-                function(cb1) {
-                    self.$.log && self.$.log.debug('Pair active: unpair');
-                    self.state.blue.unpair(remoteOOBData.address, cb1);
-                },
-                function(cb1) {
-                    self.$.log && self.$.log.debug('Pair active: pairing...');
-                    self.state.blue.pair(remoteOOBData.address, cb1);
-                }
-            ], function(err) {
-                self.state.pendingBinding = null;
-                if (err) {
-                    self.$.log && self.$.log.debug('Pair active, error:' +
-                                                   myUtils.errToPrettyStr(err));
-                    cb(null); // do not propagate to avoid shutdown
+            try {
+                var cry = this.$.cloud.cli.getCrypto();
+                cry.setOtherPublicKey(this.state.pendingBinding.info.key);
+                var msg = cry.authAndDecrypt(encRes);
+                remoteOOBData = JSON.parse(msg);
+                if (remoteOOBData.nonce === this.state.nonce) {
+                    await this.state.blue.remoteOOB(remoteOOBData);
                 } else {
-                    self.$.log && self.$.log.debug('Pair OK, remote address:' +
-                                                   remoteOOBData.address);
-                    self.state.bindings[name] = true;
-                    cb(null);
+                    var error = new Error('Nonce does not match');
+                    error.old = this.state.nonce;
+                    error.new = remoteOOBData.nonce;
+                   throw error;
                 }
-            });
+
+                this.$.log && this.$.log.debug('Pair active: unpair');
+                await this.state.blue.unpair(remoteOOBData.address);
+                this.$.log && this.$.log.debug('Pair active: pairing...');
+                await this.state.blue.pair(remoteOOBData.address);
+                this.state.pendingBinding = null;
+                this.$.log && this.$.log.debug('Pair OK, remote address:' +
+                                               remoteOOBData.address);
+                this.state.bindings[name] = true;
+                return [];
+            } catch (err) {
+                this.state.pendingBinding = null;
+                this.$.log && this.$.log.debug('Pair active, error:' +
+                                               myUtils.errToPrettyStr(err));
+                return []; // do not propagate to avoid shutdown
+            }
         } else {
             this.$.log && this.$.log.debug('Ignoring ' + name +
                                            ' in pairActive');
-            cb(null);
+            return [];
         }
     },
 
     // clientInfo type is  {key: string, address: string}
-    'pairPassive': function(name, clientInfo, encData, cb) {
+    async pairPassive(name, clientInfo, encData) {
         this.$.log && this.$.log.debug('Pair passive, name:' + name +
                                        ' key:' + clientInfo.key.slice(0, 5) +
                                        ' enc: ' + encData);
-        var self = this;
         if (this.state.pendingBinding) {
             this.$.log && this.$.log.debug('Ignoring ' +
                                            this.state.pendingBinding.name +
@@ -236,110 +214,83 @@ exports.methods = {
         var cry = this.$.cloud.cli.getCrypto();
         cry.setOtherPublicKey(clientInfo.key);
         var remoteOOBData = null;
+        try {
+            var data = await this.state.blue.readOOB();
+            localOOBData = data;
+            var msg = cry.authAndDecrypt(encData);
+            remoteOOBData = JSON.parse(msg);
+            localOOBData.nonce = remoteOOBData.nonce;
+            await this.state.blue.remoteOOB(remoteOOBData);
 
-        async.series([
-            function(cb1) {
-                self.state.blue.readOOB(function(err, data) {
-                    if (err) {
-                        cb1(err);
-                    } else {
-                        localOOBData = data;
-                        cb1(null);
-                    }
-                });
-            },
-            function(cb1) {
-                try {
-                    var msg = cry.authAndDecrypt(encData);
-                    remoteOOBData = JSON.parse(msg);
-                    localOOBData.nonce = remoteOOBData.nonce;
-                    self.state.blue.remoteOOB(remoteOOBData, cb1);
-                } catch (error) {
-                    cb1(error);
-                }
-            },
-            function(cb1) {
-                self.$.log && self.$.log.debug('Pair passive: unpair');
-                self.state.blue.unpair(remoteOOBData.address, cb1);
-            },
-            function(cb1) {
-                self.$.log && self.$.log.debug('Pair passive: ack');
-                var enc = cry.encryptAndMAC(JSON.stringify(localOOBData));
-                self.$.cloud.cli.ackPairing(name, enc, cb1);
-            }
-        ], function(err) {
-            if (err) {
-                self.$.log && self.$.log.debug('Pair passive, error:' +
-                                               myUtils.errToPrettyStr(err));
-                cb(null); // do not propagate to avoid shutdown
-            } else {
-                self.$.log && self.$.log.debug('Pair passive OK, address:' +
-                                               remoteOOBData.address);
-                cb(null);
-            }
-        });
+            this.$.log && this.$.log.debug('Pair passive: unpair');
+            await this.state.blue.unpair(remoteOOBData.address);
+
+            this.$.log && this.$.log.debug('Pair passive: ack');
+            var enc = cry.encryptAndMAC(JSON.stringify(localOOBData));
+            await this.$.cloud.cli.ackPairing(name, enc).getPromise();
+            this.$.log && this.$.log.debug('Pair passive OK, address:' +
+                                           remoteOOBData.address);
+            return [];
+        } catch (err) {
+            this.$.log && this.$.log.debug('Pair passive, error:' +
+                                           myUtils.errToPrettyStr(err));
+            return []; // do not propagate to avoid shutdown
+        }
     },
 
-    'gcPairings': function(cb) {
-        var self = this;
-        Object.keys(this.state.bindings).forEach(function(x) {
-            var addr = self.state.scanned[x];
-            if (!addr || !self.state.connections[addr]) {
-                delete self.state.bindings[x];
+    async gcPairings() {
+        for (let x of Object.keys(this.state.bindings)) {
+            var addr = this.state.scanned[x];
+            if (!addr || !this.state.connections[addr]) {
+                delete this.state.bindings[x];
             }
-        });
-        cb(null);
+        };
+        return [];
     },
 
-    'connections': function(cb) {
-        var self = this;
+    async connections() {
         var now = (new Date()).getTime();
-        this.state.blue.connections(function(err, conn) {
-            if (err) {
-                cb(err);
-            } else {
-                self.state.connections = conn;
-                Object.keys(self.state.bindings).forEach(function(x) {
-                    var addr = self.state.scanned[x];
-                    if (addr && !conn[addr]) {
-                        self.$.log && self.$.log.debug('Reconnecting ' + addr);
-                        self.state.blue.connect(addr, self.$.log);
-                    }
-                });
-                self.$.log && self.$.log.debug(now + ' Done connections:' +
-                                               JSON.stringify(self.state
-                                                              .connections));
-                cb(null);
-            }
-        });
+        try {
+            var conn = await this.state.blue.connections();
+            this.state.connections = conn;
+            for (let x of Object.keys(this.state.bindings)) {
+                var addr = this.state.scanned[x];
+                if (addr && !conn[addr]) {
+                    this.$.log && this.$.log.debug('Reconnecting ' + addr);
+                    this.state.blue.connect(addr, this.$.log);
+                }
+            };
+            this.$.log && this.$.log.debug(now + ' Done connections:' +
+                                           JSON.stringify(this.state
+                                                          .connections));
+            return [];
+        } catch (err) {
+            return [err];
+        }
     },
 
-    'scan': function(cb) {
-        var self = this;
+    async scan() {
         var now = (new Date()).getTime();
         this.$.log && this.$.log.debug(now + ' Start scanning, prefix=' +
                                        this.state.prefix);
-        this.state.blue.find(this.state.prefix, function(err, data) {
-            if (err) {
-                self.$.log && self.$.log.debug('Error scanning' +
-                                               myUtils.errToPrettyStr(err));
-                cb(err);
-            } else {
-                self.state.scanned = {};
-                console.log(data);
-                data = data || [];
-                data.forEach(function(x) {
-                    var name = x.name.slice(self.state.prefix.length);
-                    self.state.scanned[name] = x.address;
-                });
-                self.$.log && self.$.log.debug(now + ' Done scanning:' +
-                                               JSON.stringify(self.state
-                                                              .scanned));
-                cb(err, data);
-            }
-        });
+        try {
+            var data = await this.state.blue.find(this.state.prefix);
+            this.state.scanned = {};
+            console.log(data);
+            data = data || [];
+            for (let x of data) {
+                var name = x.name.slice(this.state.prefix.length);
+                this.state.scanned[name] = x.address;
+            };
+            this.$.log && this.$.log.debug(now + ' Done scanning:' +
+                                           JSON.stringify(this.state.scanned));
+            return [null, data];
+        } catch(err) {
+            this.$.log && this.$.log.debug('Error scanning' +
+                                           myUtils.errToPrettyStr(err));
+            return [err];
+        }
     }
-
 };
 
 caf_iot.init(module);

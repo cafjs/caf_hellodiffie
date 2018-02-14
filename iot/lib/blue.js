@@ -20,6 +20,7 @@ var caf_comp = caf_iot.caf_components;
 var myUtils = caf_comp.myUtils;
 var child_process = require('child_process');
 var path = require('path');
+var util = require('util');
 
 var CONNECT_EXE='connect.sh';
 var SETUP_EXE='setup.sh';
@@ -139,7 +140,7 @@ exports.newInstance = function(btmgmt, deviceIndex, timeoutMsec) {
 
     return {
 
-        init : function(name, cb) {
+        init : util.promisify(function(name, cb) {
             var control = {};
             var child = nexpect.spawn(command, {verbose: true})
                     .wait(prompt)
@@ -178,7 +179,7 @@ exports.newInstance = function(btmgmt, deviceIndex, timeoutMsec) {
                         }
                     });
             control.id = killAfterTimeout(child, control);
-        },
+        }),
 
         setup: function(log) {
             var setup = child_process.spawn(path.resolve(__dirname, SETUP_EXE),
@@ -249,7 +250,7 @@ exports.newInstance = function(btmgmt, deviceIndex, timeoutMsec) {
          * returns in callback (err, data) where 'data' type is:
          *  Array.<{address: string, name: string}>
          */
-        find : function(prefix, cb) {
+        find: util.promisify(function(prefix, cb) {
             var cb1 = myUtils.callJustOnce(null, cb);
             try {
                 var control = {};
@@ -274,7 +275,7 @@ exports.newInstance = function(btmgmt, deviceIndex, timeoutMsec) {
             } catch(err) {
                 cb1(err);
             }
-        },
+        }),
 
         getAddress: function() {
             return myAddr;
@@ -284,7 +285,7 @@ exports.newInstance = function(btmgmt, deviceIndex, timeoutMsec) {
             return localOOB;
         },
 
-        readOOB: function(cb) {
+        readOOB: util.promisify(function(cb) {
             var cb1 = myUtils.callJustOnce(function(err, data) {
                 if (err) {
                     console.log('Called twice: Error: ' +
@@ -314,9 +315,9 @@ exports.newInstance = function(btmgmt, deviceIndex, timeoutMsec) {
                         }
                     });
             control.id = killAfterTimeout(child, control);
-        },
+        }),
 
-        remoteOOB: function(remoteOOB, cb) {
+        remoteOOB: util.promisify(function(remoteOOB, cb) {
             var cb1 = myUtils.callJustOnce(function(err, data) {
                 if (err) {
                     console.log('Called twice: Error: ' +
@@ -338,9 +339,9 @@ exports.newInstance = function(btmgmt, deviceIndex, timeoutMsec) {
                         cb1(err,out);
                     });
             control.id = killAfterTimeout(child, control);
-        },
+        }),
 
-        pair: function(addr, cb) {
+        pair: util.promisify(function(addr, cb) {
             var control = {};
             var child = nexpect.spawn(command, {stream : 'all', verbose: true})
                     .wait(prompt)
@@ -370,9 +371,9 @@ exports.newInstance = function(btmgmt, deviceIndex, timeoutMsec) {
                         }
                     });
             control.id = killAfterTimeout(child, control);
-        },
+        }),
 
-        unpair: function(addr, cb) {
+        unpair: util.promisify(function(addr, cb) {
             var control = {};
             var child = nexpect.spawn(command, {stream : 'all', verbose: true})
                     .wait(prompt)
@@ -384,9 +385,9 @@ exports.newInstance = function(btmgmt, deviceIndex, timeoutMsec) {
                         cb(err,out);
                     });
             control.id = killAfterTimeout(child, control);
-        },
+        }),
 
-        connections: function(cb) {
+        connections: util.promisify(function(cb) {
             var control = {};
             var child = nexpect.spawn(command, {verbose: true})
                     .wait(prompt)
@@ -403,6 +404,6 @@ exports.newInstance = function(btmgmt, deviceIndex, timeoutMsec) {
                         }
                     });
             control.id = killAfterTimeout(child, control);
-        }
+        })
     };
 };
