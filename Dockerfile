@@ -2,8 +2,8 @@
 # DOCKER-VERSION  1.7.0
 # AUTHOR:         Antonio Lain <antlai@cafjs.com>
 # DESCRIPTION:    Cloud Assistants application hellodiffie
-# TO_BUILD:        cafjs mkImage . registry.cafjs.com:32000/root-hellodiffie
-# TO_RUN:         cafjs run --appImage registry.cafjs.com:32000/root-hellodiffie hellodiffie
+# TO_BUILD:        cafjs mkImage . gcr.io/cafjs-k8/root-hellodiffie
+# TO_RUN:         cafjs run --appImage gcr.io/cafjs-k8/root-hellodiffie hellodiffie
 
 FROM node:8
 
