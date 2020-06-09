@@ -22,7 +22,7 @@
                 {
                     "name": "log",
                     "env" : {
-                        "logLevel" : "DEBUG"
+                        "logLevel" : "process.env.LOG_LEVEL||WARN"
                     }
                 },
                 {
